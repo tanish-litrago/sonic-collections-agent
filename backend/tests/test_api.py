@@ -115,3 +115,21 @@ def test_matches_returns_latest_batch(c):
     two = c.post("/api/reconcile", files={"file": ("s.csv", b"txn_date,narration,reference,credit,debit,currency\n2026-10-01,NEFT CR-ZENITH,,41300,,INR\n", "text/csv")}).json()
     got = c.get("/api/matches").json()
     assert len(got) == 1 and got[0]["batch"] == two["batch"]
+
+
+def test_customer_email_shows_beside_row_via_api(c):
+    import asyncio
+    from app.db import get_db
+    asyncio.run(get_db().conversations.insert_one({"_id": "<e1>", "customer_id": "C006", "status": "needs_attention",
+        "subject": "Paid", "from": "x@y.z", "body": "We paid INV-1017, reference 629315881020"}))
+    rows = upload(c)
+    sharma = row(rows, "SHARMA")
+    assert sharma["result"]["status"] == "match" and sharma["result"]["evidence"][0]["conversation_id"] == "<e1>"
+
+
+def test_empty_database_is_seeded_on_first_start(monkeypatch):
+    _hits.clear()
+    dbmod.set_db(AsyncMongoMockClient()["fresh"])
+    with TestClient(app) as cl:
+        cl.post("/api/login", json={"username": "admin", "password": "pw"})
+        assert len(cl.get("/api/invoices").json()) == 27

@@ -25,6 +25,13 @@ function Row({ m, reload, setErr }) {
       <td><span className={"badge " + TONE[r.status]}>{LABEL[r.status]}</span></td>
       <td>
         {s ? <><b>{s.invoice_numbers.join(" + ")}</b> <span className="muted">score {s.score}</span><div>{s.reason}</div></> : <span className="muted">{r.reason}</span>}
+        {r.evidence?.map((e) => (
+          <div key={e.conversation_id} style={{ marginTop: 6, padding: "6px 8px", background: "var(--info-bg)", borderRadius: 6 }}>
+            <b>Customer email</b> <span className="muted">({e.via}{e.consistent === false ? ", different customer" : ""})</span>
+            <div>{e.subject} <span className="muted">from {e.from}</span></div>
+            <div className="muted">{e.snippet}</div>
+          </div>
+        ))}
         {r.alternatives?.length > 0 && <div className="muted">Also possible: {r.alternatives.join(", ")}</div>}
       </td>
       <td>

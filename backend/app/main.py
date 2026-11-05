@@ -16,7 +16,7 @@ from . import mail, store
 from .db import get_db
 from .services import agent
 from .services.matcher import NameIndex, match_row
-from .services.invoices import open_invoices
+from .services.evidence import link_evidence
 from .services.statement import parse_statement
 
 COOKIE, MAX_AGE = "session", 8 * 3600
@@ -56,6 +56,8 @@ async def poll_inbox():
 
 @asynccontextmanager
 async def lifespan(app):
+    if await get_db().invoices.count_documents({}) == 0:  # first start: seed the demo data
+        await store.reset(get_db())
     task = asyncio.create_task(poll_inbox()) if os.getenv("DISABLE_POLLER") != "1" else None
     yield
     if task:
@@ -219,8 +221,10 @@ async def reconcile(request: Request, file: UploadFile = File(...)):
     db = get_db()
     custs, invs = await store.customers(db), await store.all_invoices(db)
     idx, batch, out = NameIndex(custs), str(uuid.uuid4()), []
+    by_num = {i["invoice_number"]: i for i in invs}
+    convs = await db.conversations.find({"customer_id": {"$ne": None}, "status": {"$ne": "automated"}}).to_list(500)
     for t in txns:
-        r = match_row(t, custs, invs, idx)
+        r = link_evidence(match_row(t, custs, invs, idx), t, convs, by_num)
         doc = {"_id": str(uuid.uuid4()), "batch": batch, "txn": t, "result": r,
                "created_at": store.now(), "state": "pending" if r["status"] in ("match", "low_confidence") else "info"}
         await db.matches.insert_one(doc)
