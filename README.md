@@ -1,5 +1,7 @@
 # AcmeCorp Collections and Reconciliation
 
+[![CI](https://github.com/tanish-litrago/sonic-collections-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/tanish-litrago/sonic-collections-agent/actions/workflows/ci.yml)
+
 A small accounts-receivable tool for the fictional company AcmeCorp. It (1) emails customers about overdue
 invoices and answers their replies, and (2) matches a bank statement CSV to open invoices and lets a person
 approve each match. A person approves every payment. The LLM never decides anything about money.
@@ -43,6 +45,8 @@ Requires Docker, a Gmail account for the organization mailbox, and either a Gemi
    (for example "How much do I owe on INV-1004?"), then click *Check inbox now* (the inbox is also polled every 60 s).
    Balance questions are answered automatically. Disputes, extension requests and unknown senders appear under
    *Needs attention*.
+   Note: Gmail marks a message as read when you open it in the browser, and the inbox check only reads
+   unread messages. If "Check inbox now" shows 0 new emails, mark the reply as unread in Gmail and try again.
 6. **Reconciliation**: upload `data/bank_statement_sample.csv`, review each row, approve or reject. Approving updates
    the invoice balance and appends a payment record.
 

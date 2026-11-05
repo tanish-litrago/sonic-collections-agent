@@ -15,7 +15,8 @@ def is_automated(headers: dict, sender: str, subject: str) -> str | None:
     h = {k.lower(): str(v).lower() for k, v in headers.items()}
     if "mailer-daemon" in sender.lower() or "postmaster" in sender.lower():
         return "bounce"
-    if h.get("auto-submitted", "no") != "no" or h.get("x-autoreply") or h.get("precedence") in {"auto_reply", "bulk", "junk"}:
+    auto_sub = h.get("auto-submitted", "").strip().lower()
+    if (auto_sub and auto_sub != "no") or h.get("x-autoreply") or h.get("precedence") in {"auto_reply", "bulk", "junk"}:
         return "auto-reply"
     return "auto-reply" if AUTOMATED_SUBJECT.search(subject or "") else None
 

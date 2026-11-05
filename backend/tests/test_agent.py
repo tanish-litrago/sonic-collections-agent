@@ -36,5 +36,7 @@ def test_draft_invoice_not_in_context():
 
 def test_automated_mail_detected():
     assert agent.is_automated({"Auto-Submitted": "auto-replied"}, "a@b.com", "hi") == "auto-reply"
+    assert agent.is_automated({"Auto-Submitted": "no"}, "a@b.com", "hi") is None
+    assert agent.is_automated({"Auto-Submitted": "", "X-Autoreply": "", "Precedence": ""}, "a@b.com", "hi") is None
     assert agent.is_automated({}, "MAILER-DAEMON@x.com", "Undelivered") == "bounce"
     assert agent.is_automated({}, "a@b.com", "Out of office until Monday") == "auto-reply"

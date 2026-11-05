@@ -1,6 +1,7 @@
 """One interface, two providers. LLM_PROVIDER=gemini|ollama. The LLM only classifies and drafts text."""
 import json
 import os
+import time
 import httpx
 
 SYSTEM = """You help an accounts team answer customer emails about invoices.
@@ -20,10 +21,16 @@ def complete_json(user_prompt: str) -> dict:
         r.raise_for_status()
         return json.loads(r.json()["message"]["content"])
     key, model = os.environ["LLM_API_KEY"], os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-    r = httpx.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-                   headers={"x-goog-api-key": key}, timeout=60, json={
-        "systemInstruction": {"parts": [{"text": SYSTEM}]},
-        "contents": [{"parts": [{"text": user_prompt}]}],
-        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2}})
-    r.raise_for_status()
-    return json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
+    for attempt in range(3):
+        try:
+            r = httpx.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+                           headers={"x-goog-api-key": key}, timeout=60, json={
+                "systemInstruction": {"parts": [{"text": SYSTEM}]},
+                "contents": [{"parts": [{"text": user_prompt}]}],
+                "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2}})
+            r.raise_for_status()
+            return json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
+        except httpx.HTTPStatusError as e:
+            if attempt == 2 or e.response.status_code not in (429, 500, 502, 503, 504):
+                raise
+            time.sleep(1.5 * (attempt + 1))
