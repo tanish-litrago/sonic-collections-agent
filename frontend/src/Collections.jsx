@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { api, post } from "./api.js";
-import { useLoad, Err } from "./shared.jsx";
+import { useLoad, Err, Loading, Empty } from "./shared.jsx";
 
 const TONE = { needs_attention: "bad", replied: "ok", automated: "warn", resolved: "info" };
 const LABEL = { needs_attention: "Needs attention", replied: "Replied", automated: "Automated mail", resolved: "Resolved" };
@@ -33,7 +33,8 @@ export default function Collections() {
       <div className="tabs">
         {Object.entries(LABEL).map(([k, l]) => <button key={k} className={"btn " + (tab === k ? "" : "secondary")} onClick={() => setTab(k)}>{l}</button>)}
       </div>
-      {convs && convs.length === 0 && <p className="muted">Nothing here.</p>}
+      {!convs && !err && <Loading />}
+      {convs && convs.length === 0 && <Empty>Nothing here yet.</Empty>}
       {(convs || []).map((c) => (
         <div className="card" key={c._id}>
           <div className="row"><span className={"badge " + (TONE[c.status] || "info")}>{LABEL[c.status] || c.status}</span>

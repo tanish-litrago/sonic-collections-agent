@@ -9,3 +9,8 @@ export function useLoad(path) {
   return [data, error, load];
 }
 export const Err = ({ msg }) => (msg ? <div className="banner error" role="alert">{msg}</div> : null);
+
+export const Loading = () => (
+  <div className="skeleton" role="status" aria-label="Loading"><span /><span /><span /></div>
+);
+export const Empty = ({ children }) => <div className="empty">{children}</div>;

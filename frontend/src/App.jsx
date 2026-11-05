@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api, post, money } from "./api.js";
-import { useLoad, Err } from "./shared.jsx";
+import { useLoad, Err, Loading, Empty } from "./shared.jsx";
 import Collections from "./Collections.jsx";
 import Reconcile from "./Reconcile.jsx";
 
@@ -15,9 +15,13 @@ function Login({ onDone }) {
       <h1>AcmeCorp Collections</h1>
       <p className="hint">Accounts team login</p>
       <Err msg={err} />
-      <label htmlFor="u">Username</label><input id="u" type="text" value={u} onChange={(e) => setU(e.target.value)} autoFocus />
-      <label htmlFor="p">Password</label><input id="p" type="password" value={p} onChange={(e) => setP(e.target.value)} />
-      <p><button className="btn" disabled={busy || !u || !p}>Log in</button></p>
+      <label htmlFor="u">Username</label>
+      <input id="u" type="text" value={u} onChange={(e) => setU(e.target.value)} autoFocus />
+      <label htmlFor="p">Password</label>
+      <input id="p" type="password" value={p} onChange={(e) => setP(e.target.value)} />
+      <button className="btn" disabled={busy || !u || !p}>
+        {busy ? "Signing in..." : "Log in"}
+      </button>
     </form>
   );
 }
@@ -25,7 +29,7 @@ function Login({ onDone }) {
 function Organization() {
   const [o, err] = useLoad("/organization");
   if (err) return <Err msg={err} />;
-  if (!o) return <p className="muted">Loading…</p>;
+  if (!o) return <Loading />;
   const b = o.bank_details || {};
   return (
     <>
@@ -74,10 +78,11 @@ function Customers() {
     <>
       <h1>Customers</h1><p className="hint">Set a customer's email to your test inbox to try reminders and replies.</p>
       <Err msg={err} />
-      <div className="scroll"><table>
+      {!cs && !err && <Loading />}
+      {cs && <div className="scroll"><table>
         <thead><tr><th>Customer</th><th>Location</th><th>Currency</th><th>Contact email</th></tr></thead>
         <tbody>{(cs || []).map((c) => <CustomerRow key={c._id + c.contact_email} c={c} reload={load} />)}</tbody>
-      </table></div>
+      </table></div>}
     </>
   );
 }
@@ -96,14 +101,16 @@ function Invoices() {
           <button key={f} className={"btn " + (filter === f ? "" : "secondary")} onClick={() => setFilter(f)}>{f[0].toUpperCase() + f.slice(1)}</button>
         ))}
       </div>
-      <div className="scroll"><table>
+      {!invs && !err && <Loading />}
+      {invs && rows.length === 0 && <Empty>No invoices match this filter.</Empty>}
+      {invs && rows.length > 0 && <div className="scroll"><table>
         <thead><tr><th>Invoice</th><th>Customer</th><th>Issued</th><th>Due</th><th className="num">Total</th><th className="num">Paid</th><th className="num">Balance</th><th>Status</th></tr></thead>
         <tbody>
           {rows.map((i) => (
             <React.Fragment key={i._id}>
               <tr>
                 <td><button className="btn secondary" aria-expanded={open === i._id} onClick={() => setOpen(open === i._id ? null : i._id)}>{i.invoice_number}</button></td>
-                <td>{i.customer_name}</td><td>{i.invoice_date}</td><td>{i.due_date}</td>
+                <td>{i.customer_name}</td><td className="mono">{i.invoice_date}</td><td className="mono">{i.due_date}</td>
                 <td className="num">{money(i.total, i.currency)}</td><td className="num">{money(i.amount_paid, i.currency)}</td><td className="num">{money(i.balance_due, i.currency)}</td>
                 <td><span className={"badge " + (tone[i.status] || "info")}>{i.status}</span>{i.overdue && <> <span className="badge bad">{i.days_overdue} days overdue</span></>}</td>
               </tr>
@@ -117,7 +124,7 @@ function Invoices() {
             </React.Fragment>
           ))}
         </tbody>
-      </table></div>
+      </table></div>}
     </>
   );
 }

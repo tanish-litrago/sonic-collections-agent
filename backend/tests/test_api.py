@@ -133,3 +133,16 @@ def test_empty_database_is_seeded_on_first_start(monkeypatch):
     with TestClient(app) as cl:
         cl.post("/api/login", json={"username": "admin", "password": "pw"})
         assert len(cl.get("/api/invoices").json()) == 27
+
+
+def test_multi_invoice_payment_is_split_on_approval(c):
+    r = row(upload(c), "SAFFRON")
+    assert r["result"]["suggestion"]["invoice_numbers"] == ["INV-1010", "INV-1011", "INV-1012"]
+    body = {"invoice_numbers": ["INV-1010", "INV-1011", "INV-1012"], "settle": "full"}
+    assert c.post(f"/api/matches/{r['_id']}/approve", json=body).status_code == 200
+    inv = {i["invoice_number"]: i for i in c.get("/api/invoices").json()}
+    assert all(inv[n]["status"] == "paid" and inv[n]["balance_due"] == 0 for n in body["invoice_numbers"])
+    from app.db import get_db
+    import asyncio
+    pays = asyncio.run(get_db().payments.find({"match_id": r["_id"]}).to_list(None))
+    assert sorted(p["amount"] for p in pays) == [4130000, 7080000, 8260000] and sum(p["amount"] for p in pays) == 19470000

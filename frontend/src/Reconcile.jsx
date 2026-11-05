@@ -19,14 +19,14 @@ function Row({ m, reload, setErr }) {
   const pending = m.state === "pending";
   return (
     <tr>
-      <td>{m.txn.date}</td>
+      <td className="mono">{m.txn.date}</td>
       <td className="mono">{m.txn.narration}</td>
       <td className="num">{money(m.txn.amount, m.txn.currency)}</td>
       <td><span className={"badge " + TONE[r.status]}>{LABEL[r.status]}</span></td>
       <td>
-        {s ? <><b>{s.invoice_numbers.join(" + ")}</b> <span className="muted">score {s.score}</span><div>{s.reason}</div></> : <span className="muted">{r.reason}</span>}
+        {s ? <><b>{s.invoice_numbers.join(" + ")}</b> <span className="muted mono">score {s.score}</span><div>{s.reason}</div></> : <span className="muted">{r.reason}</span>}
         {r.evidence?.map((e) => (
-          <div key={e.conversation_id} style={{ marginTop: 6, padding: "6px 8px", background: "var(--info-bg)", borderRadius: 6 }}>
+          <div key={e.conversation_id} className="evidence">
             <b>Customer email</b> <span className="muted">({e.via}{e.consistent === false ? ", different customer" : ""})</span>
             <div>{e.subject} <span className="muted">from {e.from}</span></div>
             <div className="muted">{e.snippet}</div>
