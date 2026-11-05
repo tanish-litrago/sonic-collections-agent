@@ -58,6 +58,9 @@ and `npm install && npm run dev` in `frontend/` (dev server proxies `/api` to po
   my own labels; the baselines reach 39% (name only) and 54% (amount only) precision. These are my labels,
   so treat the result as a sanity check and not as a benchmark.
 
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push: the backend tests, the eval (it fails if the
+matcher makes a wrong or missed match on the labelled rows), the frontend build, and a Docker image build.
+
 ## How the important parts work
 
 - **Overdue**: status `sent`, balance above zero, due date before today. Drafts are never chased.

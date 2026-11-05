@@ -81,3 +81,7 @@ for t, (es, ei, ec), why in cases:
 if not miss: lines.append("None.")
 open("eval/report.md", "w").write("\n".join(lines) + "\n")
 print("\n".join(lines))
+
+# CI gate: the full matcher must have no wrong matches and no misses on the labelled rows
+_tp, _fp, _fn, _ = score(full)
+sys.exit(1 if (_fp or _fn) else 0)
