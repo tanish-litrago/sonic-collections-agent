@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+motor
+httpx
+rapidfuzz
+itsdangerous
+python-multipart
+pytest
+pytest-asyncio
+mongomock-motor
