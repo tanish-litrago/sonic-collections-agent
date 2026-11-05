@@ -1,5 +1,6 @@
 .env
 .venv/
+Sonic-AI-Intern-Assignment.pdf
 __pycache__/
 .pytest_cache/
 node_modules/
