@@ -39,3 +39,7 @@ upload, strict CORS, input validation, and a 1 MB CSV cap.
 not by LLM. It can nudge a score or promote a low-confidence row; a person still approves.
 
 **11. MongoDB.** Invoices carry nested line items and the payments and conversations collections are naturally documents.
+
+**12. The inbox check reads unread mail only.** Rejected: reading recent mail by date and skipping known Message-IDs. *Reset demo data* clears the stored conversations, so old emails would look new and be answered a second time. The cost is that opening a reply in the Gmail web page hides it from the check; the README says so and how to recover.
+
+**13. LLM failures never block the inbox.** A transient error (429, 5xx) is retried three times with backoff; any other failure, or invalid JSON, sends the email to *Needs attention*. The model name is configurable because a free-tier key may not have access to a given model.
