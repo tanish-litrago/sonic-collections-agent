@@ -178,7 +178,7 @@ def match_row(txn, customers, invoices, idx: NameIndex):
             alts = [c[1]["invoice_number"] for c in cands[1:4]]
             return {**base, "status": "match", "alternatives": alts, "suggestion": {
                 "invoice_numbers": [inv["invoice_number"]], "score": score, "settle": pre,
-                "settle_options": opts, "reason": cands[0][2].capitalize()}}
+                "settle_options": opts, "reason": cands[0][2][:1].upper() + cands[0][2][1:]}}
 
     # unknown payer but amount equals exactly one open invoice: show, never preselect
     exact = [i for i in pool if i["balance_due"] == txn["amount"]]

@@ -108,3 +108,10 @@ async def test_inbox_flow(c, monkeypatch):
     assert (await process_message(db, mk("customer1@example.com", "Balance")))["status"] == "replied"
     assert "₹2,36,000.00" in c.sent[-1][2]
     assert (await process_message(db, mk("customer1@example.com", "Balance"))).get("skipped")
+
+
+def test_matches_returns_latest_batch(c):
+    upload(c)
+    two = c.post("/api/reconcile", files={"file": ("s.csv", b"txn_date,narration,reference,credit,debit,currency\n2026-10-01,NEFT CR-ZENITH,,41300,,INR\n", "text/csv")}).json()
+    got = c.get("/api/matches").json()
+    assert len(got) == 1 and got[0]["batch"] == two["batch"]

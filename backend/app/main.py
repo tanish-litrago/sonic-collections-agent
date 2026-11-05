@@ -222,7 +222,7 @@ async def reconcile(request: Request, file: UploadFile = File(...)):
     for t in txns:
         r = match_row(t, custs, invs, idx)
         doc = {"_id": str(uuid.uuid4()), "batch": batch, "txn": t, "result": r,
-               "state": "pending" if r["status"] in ("match", "low_confidence") else "info"}
+               "created_at": store.now(), "state": "pending" if r["status"] in ("match", "low_confidence") else "info"}
         await db.matches.insert_one(doc)
         out.append(doc)
     return {"batch": batch, "rows": out}
@@ -231,7 +231,7 @@ async def reconcile(request: Request, file: UploadFile = File(...)):
 @app.get("/api/matches", dependencies=[Depends(admin)])
 async def matches(batch: str | None = None):
     if not batch:
-        last = await get_db().matches.find({}).sort("_id", -1).to_list(1)
+        last = await get_db().matches.find({}).sort("created_at", -1).to_list(1)
         batch = last[0]["batch"] if last else None
     return await get_db().matches.find({"batch": batch}).to_list(None) if batch else []
 
